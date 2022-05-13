@@ -1,4 +1,8 @@
+
 # Getting Started with Create React App
+
+
+marvel api doesn't work, I had to use breaking bad api
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
