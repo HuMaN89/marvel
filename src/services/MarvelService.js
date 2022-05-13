@@ -1,28 +1,27 @@
-class MarvelService {
-  _apiBase = "https://breakingbadapi.com/api/";
-  getResourses = async (url) => {
-    let res = await fetch(url);
-    if (!res.ok) {
-      throw new Error(`Could not fetch ${url}, status: ${res.status}`);
-    }
-    return await res.json();
-  };
+import { useHttp } from "../hooks/http.hook";
 
-  getAllCharacters = async (offset) => {
-    const res = await this.getResourses(
-      `${this._apiBase}characters?limit=9&offset=${offset}`
-    );
-    return res.map(this._transformCharacter);
+const useMarvelService = () => {
+  const { loading, error, request, clearError } = useHttp();
+
+  const _apiBase = "https://breakingbadapi.com/api/";
+
+  const getAllCharacters = async (offset) => {
+    const res = await request(`${_apiBase}characters?limit=9&offset=${offset}`);
+    return res.map(_transformCharacter);
   };
-  getCharacter = async (id) => {
-    const res = await this.getResourses(`${this._apiBase}characters/${id}`);
-    return this._transformCharacter(res[0]);
+  const getDeads = async () => {
+    const res = await request(`${_apiBase}deaths`);
+    return res.map(_transformCharacter);
   };
-  getRandomCharacter = async () => {
-    const res = await this.getResourses(`${this._apiBase}character/random`);
-    return this._transformCharacter(res[0]);
+  const getCharacter = async (id) => {
+    const res = await request(`${_apiBase}characters/${id}`);
+    return _transformCharacter(res[0]);
   };
-  _transformCharacter = (char) => {
+  const getRandomCharacter = async () => {
+    const res = await request(`${_apiBase}character/random`);
+    return _transformCharacter(res[0]);
+  };
+  const _transformCharacter = (char) => {
     let occupation = null;
     if (char.occupation.length <= 2) {
       occupation = char.occupation;
@@ -40,6 +39,15 @@ class MarvelService {
       clazz: "char__item",
     };
   };
-}
+  return {
+    error,
+    loading,
+    clearError,
+    getAllCharacters,
+    getCharacter,
+    getRandomCharacter,
+    getDeads,
+  };
+};
 
-export default MarvelService;
+export default useMarvelService;

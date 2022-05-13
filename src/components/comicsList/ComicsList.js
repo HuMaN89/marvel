@@ -1,8 +1,10 @@
 import "./ComicsList.scss";
 import img1 from "../../img/UW.png";
 import img2 from "../../img/x-men.png";
+import useMarvelService from "../../services/MarvelService";
 
 const ComicsList = () => {
+  const { loading, error, getDeads } = useMarvelService();
   const comics = [
     {
       src: img1,

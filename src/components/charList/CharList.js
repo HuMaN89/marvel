@@ -1,133 +1,89 @@
-import React, { Component } from "react";
+import React, { useState, useEffect } from "react";
 import "./CharList.scss";
-import MarvelService from "../../services/MarvelService";
+import useMarvelService from "../../services/MarvelService";
 import Spinner from "../spinner/Spinner";
 import ErrorMessage from "../errorMessage/ErrorMessage";
 
-class CharList extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      charList: [],
-      loading: true,
-      error: false,
-      offset: 0,
-      newItemsLoading: false,
-      charEnded: false,
-    };
-  }
+const CharList = (props) => {
+  const [charList, setCharList] = useState([]);
+  const [offset, setOffset] = useState(0);
+  const [newItemsLoading, setNewItemsLoading] = useState(false);
+  const [charEnded, setCharEnded] = useState(false);
 
-  marvelService = new MarvelService();
+  const { getAllCharacters, loading, error } = useMarvelService();
 
-  onRequest = () => {
-    this.onCharListLoading();
-    this.marvelService
-      .getAllCharacters(this.state.offset)
-      .then(this.onCharListLoaded)
-      .catch(this.onError);
+  const onRequest = (initial) => {
+    initial ? setNewItemsLoading(false) : setNewItemsLoading(true);
+    onCharListLoading();
+    getAllCharacters(offset).then(onCharListLoaded);
   };
 
-  onCharListLoading = () => {
-    this.setState(({ offset }) => ({
-      offset: offset + 9,
-      newItemsLoading: true,
-    }));
+  const onCharListLoading = () => {
+    setOffset(offset + 9);
   };
-  onCharListLoaded = (newCharList) => {
+  const onCharListLoaded = (newCharList) => {
     let ended = false;
     if (newCharList.length < 9) {
       ended = true;
-      this.setState({ charEnded: ended });
+      setCharEnded(ended);
     }
-    this.setState(({ charList }) => ({
-      charList: [...charList, ...newCharList],
-      loading: false,
-      newItemsLoading: false,
-    }));
-  };
-  onError = () => {
-    this.setState({ loading: false, error: true });
+
+    setCharList((charList) => [...charList, ...newCharList]);
+    setNewItemsLoading(false);
   };
 
-  componentDidMount() {
-    this.onRequest();
-    this.setState({ offset: this.state.offset + 9 });
-  }
+  useEffect(() => {
+    onRequest(true);
+  }, []);
 
-  componentDidUpdate() {}
+  return (
+    <div className="char__list">
+      {loading && !newItemsLoading ? <Spinner /> : null}
+      {error ? <ErrorMessage /> : null}
 
-  onClicked = (e) => {
-    let target = e.currentTarget.dataset.id;
-    this.props.onCharSelected(target);
-    this.setState(({ charList }) => ({
-      charList: charList.map((item) => {
-        if (item.charID == target) {
-          return { ...item, clazz: "char__item char__item_selected" };
-        }
-        return { ...item, clazz: "char__item " };
-      }),
-    }));
-  };
-  render() {
-    const { error, loading, newItemsLoading, charEnded } = this.state;
+      <CharGrid charList={charList} onCharSelected={props.onCharSelected} />
 
-    return (
-      <div className="char__list">
-        {/* <CharGrid charList={this.state.charList} onClicked={this.onClicked} /> */}
-        {loading ? <Spinner /> : null}
-        {error ? <ErrorMessage /> : null}
-        {!(error || loading) ? (
-          <CharGrid charList={this.state.charList} onClicked={this.onClicked} />
-        ) : null}
+      {newItemsLoading ? (
+        <Spinner />
+      ) : (
         <Button
-          onRequest={this.onRequest}
+          onRequest={onRequest}
           newItemsLoading={newItemsLoading}
           charEnded={charEnded}
         />
-      </div>
-    );
-  }
-}
+      )}
+    </div>
+  );
+};
 
-class CharGrid extends Component {
-  render() {
-    const { onClicked, charList } = this.props;
-    return (
-      <ul className="char__grid">
-        {charList.map((item, idx) => {
-          return (
-            <li
-              tabIndex={idx + 1}
-              className={item.clazz}
-              onFocus={onClicked}
-              key={item.charID}
-              data-id={item.charID}
-            >
-              <img src={item.thumbnail} alt={item.charID} />
-              <div className="char__name">{item.name}</div>
-            </li>
-          );
-        })}
-      </ul>
-    );
-  }
-}
+const CharGrid = ({ onCharSelected, charList }) => {
+  const onFocused = (e) => {
+    let target = Number(e.currentTarget.dataset.id);
+    onCharSelected(target);
+  };
+  return (
+    <ul className="char__grid">
+      {charList.map((item, idx) => {
+        return (
+          <li
+            tabIndex={idx + 1}
+            className={item.clazz}
+            onFocus={onFocused}
+            key={item.charID}
+            data-id={item.charID}
+          >
+            <img src={item.thumbnail} alt={item.charID} />
+            <div className="char__name">{item.name}</div>
+          </li>
+        );
+      })}
+    </ul>
+  );
+};
 
 const Button = (props) => {
-  if (props.newItemsLoading) {
-    return (
-      <button
-        className="button button__main button__long"
-        style={{
-          color: "#44014C",
-          display: props.charEnded ? "none" : "block",
-        }}
-      >
-        <div className="inner" onClick={props.onRequest}>
-          load more
-        </div>
-      </button>
-    );
+  if (props.charEnded) {
+    return null;
   }
   return (
     <button className="button button__main button__long">
