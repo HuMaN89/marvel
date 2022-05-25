@@ -1,40 +1,40 @@
 import "./App.scss";
+import { lazy, Suspense } from "react";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Header from "../header/Header";
-// import RandomChar from "../randomChar/RandomChar";
-// import CharList from "../charList/CharList";
-// import image from "../../img/vision.png";
-// import Banner from "../banner/Banner";
-import ComicsList from "../comicsList/ComicsList";
-// import SingleComic from "../singleComic/SingleComic";
-import { useState } from "react";
-// import CharInfo from "../charInfo/CharInfo";
-import ErrorBoundary from "../errorBoundary/ErrorBoundary";
+const Page404 = lazy(() => import("../../Pages/404"));
+const HomePage = lazy(() => import("../../Pages/HomePage"));
+const EpisodesPage = lazy(() => import("../../Pages/EpisodesPage"));
+const SingleEpisodePage = lazy(() => import("../../Pages/SingleEpisodePage"));
+const SingleCharacterPage = lazy(() =>
+  import("../../Pages/SingleCharacterPage")
+);
 
 const App = () => {
-  const [selectedChar, setChar] = useState(null);
-
-  const onCharSelected = (id) => {
-    setChar(id);
-  };
   return (
-    <div className="app">
-      <Header />
-      <main>
-        {/* <RandomChar />
-        <div className="char__content">
-          <ErrorBoundary>
-            <CharList onCharSelected={onCharSelected} />
-          </ErrorBoundary>
-          <ErrorBoundary>
-            <CharInfo charID={selectedChar} />
-          </ErrorBoundary>
-        </div>
-        <img className="bg-decoration" src={image} alt="vision" /> */}
-        <ErrorBoundary>
-          <ComicsList />
-        </ErrorBoundary>
-      </main>
-    </div>
+    <Router>
+      <div className="app">
+        <Header />
+        <main>
+          <Suspense>
+            <Routes>
+              <Route exact element={<HomePage />} path="/" />
+              <Route
+                exact
+                element={<SingleCharacterPage />}
+                path="/characters/:CharacterId"
+              />
+              <Route exact element={<EpisodesPage />} path="/episodes" />
+              <Route
+                element={<SingleEpisodePage />}
+                path="/episodes/:episodeId"
+              />
+              <Route element={<Page404 />} path="/*" />
+            </Routes>
+          </Suspense>
+        </main>
+      </div>
+    </Router>
   );
 };
 

@@ -11,7 +11,21 @@
     row-gap: 55px;
   }
   &__item {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
     transition: 0.3s transform;
+    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.25);
+    width: 200px;
+    border: 2px solid plum;
+    height: 200px;
+    text-align: center;
+    & a {
+      display: block;
+      width: 200px;
+      height: 200px;
+    }
     &-img {
       box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.25);
       width: 225px;

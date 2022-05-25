@@ -3,6 +3,7 @@ import "./CharList.scss";
 import useMarvelService from "../../services/MarvelService";
 import Spinner from "../spinner/Spinner";
 import ErrorMessage from "../errorMessage/ErrorMessage";
+import Button from "../button/Button";
 
 const CharList = (props) => {
   const [charList, setCharList] = useState([]);
@@ -78,19 +79,6 @@ const CharGrid = ({ onCharSelected, charList }) => {
         );
       })}
     </ul>
-  );
-};
-
-const Button = (props) => {
-  if (props.charEnded) {
-    return null;
-  }
-  return (
-    <button className="button button__main button__long">
-      <div className="inner" onClick={props.onRequest}>
-        load more
-      </div>
-    </button>
   );
 };
 

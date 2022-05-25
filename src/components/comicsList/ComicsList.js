@@ -1,90 +1,71 @@
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+
+import Button from "../button/Button";
+import ErrorMessage from "../errorMessage/ErrorMessage";
+import Spinner from "../spinner/Spinner";
 import "./ComicsList.scss";
-import img1 from "../../img/UW.png";
-import img2 from "../../img/x-men.png";
 import useMarvelService from "../../services/MarvelService";
 
 const ComicsList = () => {
-  const { loading, error, getDeads } = useMarvelService();
-  const comics = [
-    {
-      src: img1,
-      alt: "ultimate war",
-      name: "ULTIMATE X-MEN VOL. 5: ULTIMATE WAR TPB",
-      price: "9.99$",
-      id: "1",
-    },
-    {
-      src: img2,
-      alt: "x-men",
-      name: "X-Men: Days of Future Past",
-      price: "NOT AVAILABLE",
-      id: "2",
-    },
-    {
-      src: img1,
-      alt: "ultimate war",
-      name: "ULTIMATE X-MEN VOL. 5: ULTIMATE WAR TPB",
-      price: "9.99$",
-      id: "3",
-    },
-    {
-      src: img2,
-      alt: "x-men",
-      name: "X-Men: Days of Future Past",
-      price: "NOT AVAILABLE",
-      id: "4",
-    },
-    {
-      src: img1,
-      alt: "ultimate war",
-      name: "ULTIMATE X-MEN VOL. 5: ULTIMATE WAR TPB",
-      price: "9.99$",
-      id: "5",
-    },
-    {
-      src: img2,
-      alt: "x-men",
-      name: "X-Men: Days of Future Past",
-      price: "NOT AVAILABLE",
-      id: "6",
-    },
-    {
-      src: img1,
-      alt: "ultimate war",
-      name: "ULTIMATE X-MEN VOL. 5: ULTIMATE WAR TPB",
-      price: "9.99$",
-      id: "7",
-    },
-    {
-      src: img2,
-      alt: "x-men",
-      name: "X-Men: Days of Future Past",
-      price: "NOT AVAILABLE",
-      id: "8",
-    },
-  ];
+  const { loading, error, getEpisodes } = useMarvelService();
+
+  const [episodesList, setEpisodesList] = useState([]);
+  const [offset, setOffset] = useState(1);
+  const [newItemsLoading, setNewItemsLoading] = useState(false);
+  const [episodesEnded, setEpisodesEnded] = useState(false);
+
+  const onRequest = () => {
+    onEpisodesListLoading();
+    getEpisodes(offset).then(onEpisodesListLoaded);
+  };
+
+  const onEpisodesListLoading = () => {
+    setOffset(offset + 8);
+  };
+  const onEpisodesListLoaded = (newEpisodesList) => {
+    let ended = false;
+    if (newEpisodesList.length < 8) {
+      ended = true;
+      setEpisodesEnded(ended);
+    }
+
+    setEpisodesList((episodesList) => [...episodesList, ...newEpisodesList]);
+    setNewItemsLoading(false);
+  };
+
+  useEffect(() => {
+    onRequest();
+  }, []);
+
   return (
     <div className="comics__list">
       <ul className="comics__grid">
-        {comics.map((item) => {
+        {episodesList.map((item) => {
           return (
-            <li className="comics__item" key={item.id}>
-              <a href="#">
-                <img
+            <li className="comics__item" key={item.episode_id}>
+              <Link to={`/episodes/${item.episode}`}>
+                {/* <img
                   src={item.src}
                   alt={item.alt}
                   className="comics__item-img"
-                />
-                <div className="comics__item-name">{item.name}</div>
-                <div className="comics__item-price">{item.price}</div>
-              </a>
+                /> */}
+                <div className="comics__item-name">{item.title}</div>
+                <div className="comics__item-name">Episode: {item.episode}</div>
+                <div className="comics__item-price">{item.air_date}</div>
+              </Link>
             </li>
           );
         })}
       </ul>
-      <button className="button button__main button__long">
-        <div className="inner">load more</div>
-      </button>
+
+      {loading && !newItemsLoading ? <Spinner /> : ""}
+      {error ? <ErrorMessage /> : null}
+      <Button
+        onRequest={onRequest}
+        newItemsLoading={newItemsLoading}
+        charEnded={episodesEnded}
+      />
     </div>
   );
 };

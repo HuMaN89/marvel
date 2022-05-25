@@ -1,7 +1,7 @@
 import { useHttp } from "../hooks/http.hook";
 
 const useMarvelService = () => {
-  const { loading, error, request, clearError } = useHttp();
+  const { loading, setLoading, error, request, clearError } = useHttp();
 
   const _apiBase = "https://breakingbadapi.com/api/";
 
@@ -9,9 +9,21 @@ const useMarvelService = () => {
     const res = await request(`${_apiBase}characters?limit=9&offset=${offset}`);
     return res.map(_transformCharacter);
   };
-  const getDeads = async () => {
-    const res = await request(`${_apiBase}deaths`);
-    return res.map(_transformCharacter);
+  const getEpisodes = async (offset) => {
+    const resArr = [];
+    setLoading(true);
+    for (let i = offset; i < offset + 8; i++) {
+      const res = await request(`${_apiBase}episodes/${i}`);
+      resArr.push(...res);
+    }
+    setLoading(false);
+    return resArr;
+  };
+  const getEpisode = async (id) => {
+    setLoading(true);
+    const res = await request(`${_apiBase}episodes/${id}`);
+    setLoading(false);
+    return _transformEpisode(res[0]);
   };
   const getCharacter = async (id) => {
     const res = await request(`${_apiBase}characters/${id}`);
@@ -20,6 +32,20 @@ const useMarvelService = () => {
   const getRandomCharacter = async () => {
     const res = await request(`${_apiBase}character/random`);
     return _transformCharacter(res[0]);
+  };
+  const getSearchCharacter = async (name) => {
+    const res = await request(`${_apiBase}characters?name=${name}`);
+    if (res.length === 0) return false;
+    return _transformCharacter(res[0]);
+  };
+  const _transformEpisode = (episode) => {
+    return {
+      episode_id: episode.episode_id,
+      season: episode.season,
+      characters: episode.characters,
+      airDate: episode.air_date,
+      title: episode.title,
+    };
   };
   const _transformCharacter = (char) => {
     let occupation = null;
@@ -46,7 +72,9 @@ const useMarvelService = () => {
     getAllCharacters,
     getCharacter,
     getRandomCharacter,
-    getDeads,
+    getEpisodes,
+    getEpisode,
+    getSearchCharacter,
   };
 };
 
